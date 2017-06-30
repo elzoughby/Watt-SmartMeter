@@ -9,8 +9,8 @@
 #define FIREBASE_HOST "https://watt-project-eg.firebaseio.com/"
 #define FIREBASE_AUTH "BIiq1X5t2MYbzj9mQxat1BuABRNIX8VT7YGIz7Mb"
 
-#define WIFI_SSID "Watt?"
-#define WIFI_PASSWORD "elzou8by"
+#define WIFI_SSID "Zox"
+#define WIFI_PASSWORD "The1stZox"
 
 
 
