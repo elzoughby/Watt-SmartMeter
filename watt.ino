@@ -17,12 +17,13 @@
 float prevPowerAverage = 0;
 float realTime = 0;
 double cumulative = 0;
+double hourCumulative = 0
 double dayCumulative = 0;
 double monthCumulative = 0;
 double yearCumulative = 0;
-short currDay = 0;
-short currMonth = 0;
-unsigned int currYear = 0;
+unsigned short currDay = 0;
+unsigned short currMonth = 0;
+unsigned short currYear = 0;
 unsigned int realTimeSum = 0;
 unsigned int realTimeCount = 0;
 time_t prevTime;
