@@ -15,19 +15,18 @@
 
 
 
-float prevPowerAverage = 0;
-float realTime = 0;
-double cumulative = 0;
-double hourCumulative = 0
-double dayCumulative = 0;
-double monthCumulative = 0;
-double yearCumulative = 0;
+unsigned float prevPowerAverage = 0;
+unsigned double cumulative = 0;
+unsigned double hourCumulative = 0
+unsigned double dayCumulative = 0;
+unsigned double monthCumulative = 0;
+unsigned double yearCumulative = 0;
 unsigned char currHour = 0;
 unsigned char currDay = 0;
 unsigned char currMonth = 0;
 unsigned short currYear = 0;
-unsigned int realTimeSum = 0;
-unsigned int realTimeCount = 0;
+unsigned float realTimeSum = 0;
+unsigned short realTimeCount = 0;
 time_t prevTime;
 
 
@@ -72,7 +71,7 @@ void loop() {
   double elapsedTime = now() - prevTime;
   if(elapsedTime >= 60)
     calcCumulative(elapsedTime);
-  realTime = readRealTime();
+  float realTime = readRealTime();
   Firebase.set(String("Homes/")+METER_ID+"/consumption/realtime", realTime);
   realTimeSum += realTime;
   realTimeCount += 1;
