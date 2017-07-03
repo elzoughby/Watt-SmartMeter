@@ -13,3 +13,5 @@ void eepromBegin(unsigned int size);
 void eepromStore(unsigned int address, unsigned int val);
 
 unsigned int eepromRead(unsigned int address);
+
+//TODO a problem with floating points values
