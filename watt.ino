@@ -1,4 +1,4 @@
-// Watt?
+// Watt? Smart Meter
 
 
 #include <ESP8266WiFi.h>        //https://github.com/esp8266/Arduino
@@ -15,17 +15,17 @@
 
 
 
-unsigned float prevPowerAverage = 0;
-unsigned double cumulative = 0;
-unsigned double hourCumulative = 0
-unsigned double dayCumulative = 0;
-unsigned double monthCumulative = 0;
-unsigned double yearCumulative = 0;
+float prevPowerAverage = 0;
+double cumulative = 0;
+double hourCumulative = 0;
+double dayCumulative = 0;
+double monthCumulative = 0;
+double yearCumulative = 0;
 unsigned char currHour = 0;
 unsigned char currDay = 0;
 unsigned char currMonth = 0;
 unsigned short currYear = 0;
-unsigned float realTimeSum = 0;
+float realTimeSum = 0;
 unsigned short realTimeCount = 0;
 time_t prevTime;
 
@@ -154,9 +154,11 @@ float readRealTime() {
 
 void syncCumulative() {
 
+  Serial.println("I could reach here");
   //sync overall cumulative with firebase
   Firebase.set(String("Homes/")+METER_ID+"/consumption/current/overall", cumulative);
   
+  Serial.println("but couldn't reach here");
   //sync year cumulative with firebase
   if(currYear == year())
     Firebase.set(String("Homes/")+METER_ID+"/consumption/current/year", yearCumulative);
