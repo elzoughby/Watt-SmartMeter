@@ -32,16 +32,12 @@ time_t prevTime;
 
 void setup() {
 
-  //configurations
+  //gpio configurations
   Serial.begin(9600);
   pinMode(A0, INPUT);
 
-  //eeprom setup
-  eepromBegin(512);
-
   // connect to wifi.
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-
   //just for debugging
   Serial.print("connecting");
   while (WiFi.status() != WL_CONNECTED) {
@@ -55,13 +51,19 @@ void setup() {
   //connect to firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
 
-  //sync saved cumulative values with firebase
-  syncCumulative();
+  //eeprom setup
+  eepromBegin(512);
 
   //initialize time
   time_init();
+
+  //load saved data from eeprom
+  loadSavedData();
+
+  //sync saved cumulative values with firebase  
+  syncCumulative();
+
   prevTime = now();
-  Serial.println(prevTime);
 
 }
 
@@ -82,6 +84,22 @@ void loop() {
   Serial.println();
   
   delay(500);
+}
+
+
+void loadSavedData() {
+
+  cumulative = eepromRead(CUMULATIVE_ADDRESS);
+  yearCumulative = eepromRead(YEAR_CUMULATIVE_ADDRESS);
+  monthCumulative = eepromRead(MONTH_CUMULATIVE_ADDRESS);
+  dayCumulative = eepromRead(DAY_CUMULATIVE_ADDRESS);
+  hourCumulative = eepromRead(HOUR_CUMULATIVE_ADDRESS);
+  
+  currYear = eepromRead(CURR_YEAR_ADDRESS);
+  currMonth = eepromRead(CURR_MONTH_ADDRESS);
+  currDay = eepromRead(CURR_DAY_ADDRESS);
+  currHour = eepromRead(CURR_HOUR_ADDRESS);
+
 }
 
 
@@ -156,51 +174,46 @@ float readRealTime() {
 void syncCumulative() {
 
   //sync overall cumulative with firebase
-  cumulative = eepromRead(CUMULATIVE_ADDRESS);
   Firebase.set(String("Homes/")+METER_ID+"/consumption/current/overall", cumulative);
   
   //sync year cumulative with firebase
-  yearCumulative = eepromRead(YEAR_CUMULATIVE_ADDRESS);
-  currYear = eepromRead(CURR_YEAR_ADDRESS);
   if(currYear == year())
     Firebase.set(String("Homes/")+METER_ID+"/consumption/current/year", yearCumulative);
   else {
     Firebase.set(String("Homes/")+METER_ID+"/consumption/past/years/"+currYear, yearCumulative);
     yearCumulative = 0;
     currYear = year();
+    eepromStore(CURR_YEAR_ADDRESS, currYear);
   }
 
   //sync month cumulative with firebase
-  monthCumulative = eepromRead(MONTH_CUMULATIVE_ADDRESS);
-  currMonth = eepromRead(CURR_MONTH_ADDRESS);
   if(currMonth == month())
     Firebase.set(String("Homes/")+METER_ID+"/consumption/current/month", monthCumulative);
   else {
     Firebase.set(String("Homes/")+METER_ID+"/consumption/past/months/"+currMonth, monthCumulative);
     monthCumulative = 0;
     currMonth = month();
+    eepromStore(CURR_MONTH_ADDRESS, currMonth);
   }
 
   //sync day cumulative with firebase
-  dayCumulative = eepromRead(DAY_CUMULATIVE_ADDRESS);
-  currDay = eepromRead(CURR_DAY_ADDRESS);
   if(currDay == day())
     Firebase.set(String("Homes/")+METER_ID+"/consumption/current/day", dayCumulative);
   else {
     Firebase.set(String("Homes/")+METER_ID+"/consumption/past/days/"+currDay, dayCumulative);
     dayCumulative = 0;
     currDay = day();
+    eepromStore(CURR_DAY_ADDRESS, currDay);
   }
 
   //sync hour cumulative with firebase
-  hourCumulative = eepromRead(HOUR_CUMULATIVE_ADDRESS);
-  currHour = eepromRead(CURR_HOUR_ADDRESS);
   if(currHour == hour())
     Firebase.set(String("Homes/")+METER_ID+"/consumption/current/hour", hourCumulative);
   else {
     Firebase.set(String("Homes/")+METER_ID+"/consumption/past/hours/"+currHour, hourCumulative);
     hourCumulative = 0;
     currHour = hour();
+    eepromStore(CURR_HOUR_ADDRESS, currHour);
   }
 
 }
