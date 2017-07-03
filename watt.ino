@@ -8,6 +8,7 @@
 
 #define FIREBASE_HOST "https://watt-project-eg.firebaseio.com/"
 #define FIREBASE_AUTH "BIiq1X5t2MYbzj9mQxat1BuABRNIX8VT7YGIz7Mb"
+#define METER_ID "-Knn2Qr5N2DhTCjz9IVq"
 
 #define WIFI_SSID "Zox"
 #define WIFI_PASSWORD "The1stZox"
@@ -21,8 +22,9 @@ double hourCumulative = 0
 double dayCumulative = 0;
 double monthCumulative = 0;
 double yearCumulative = 0;
-unsigned short currDay = 0;
-unsigned short currMonth = 0;
+unsigned char currHour = 0;
+unsigned char currDay = 0;
+unsigned char currMonth = 0;
 unsigned short currYear = 0;
 unsigned int realTimeSum = 0;
 unsigned int realTimeCount = 0;
@@ -54,7 +56,8 @@ void setup() {
   //connect to firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
 
-  initiateCumulative();
+  //sync saved cumulative values with firebase
+  syncCumulative();
 
   //initialize time
   time_init();
@@ -70,16 +73,14 @@ void loop() {
   if(elapsedTime >= 60)
     calcCumulative(elapsedTime);
   realTime = readRealTime();
-  Firebase.set("Devices/-KfWxUaA7tnwZr4ZIbrq/consumption", realTime);
+  Firebase.set(String("Homes/")+METER_ID+"/consumption/realtime", realTime);
   realTimeSum += realTime;
   realTimeCount += 1;
 
   //just for debugging
-  Serial.print("Real-time Power = ");
-  Serial.println(realTime);
-  Serial.print("Cumulative Power = ");
-  Serial.println(cumulative);
-  Serial.println(" ");
+  Serial.println(String("Real-time Power = ") + realTime);
+  Serial.println(String("Cumulative Power = ") + cumulative);
+  Serial.println();
   
   delay(500);
 }
@@ -153,32 +154,56 @@ float readRealTime() {
 }
 
 
-void initiateCumulative() {
+void syncCumulative() {
 
+  //sync overall cumulative with firebase
   cumulative = eepromRead(CUMULATIVE_ADDRESS);
-  Firebase.set("irSensor/cumulative", cumulative);
+  Firebase.set(String("Homes/")+METER_ID+"/consumption/current/overall", cumulative);
   
-
+  //sync year cumulative with firebase
   yearCumulative = eepromRead(YEAR_CUMULATIVE_ADDRESS);
   currYear = eepromRead(CURR_YEAR_ADDRESS);
-  Firebase.set("irSensor/history/current/year" + (String)currYear, yearCumulative);
-  if(currYear != year()) 
+  if(currYear == year())
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/year", yearCumulative);
+  else {
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/past/years/"+currYear, yearCumulative);
     yearCumulative = 0;
-  currYear = year();
+    currYear = year();
+  }
 
+  //sync month cumulative with firebase
   monthCumulative = eepromRead(MONTH_CUMULATIVE_ADDRESS);
   currMonth = eepromRead(CURR_MONTH_ADDRESS);
-  Firebase.set("irSensor/history/current/month" + (String)currMonth, monthCumulative);
-  if(currMonth != month()) 
+  if(currMonth == month())
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/month", monthCumulative);
+  else {
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/past/months/"+currMonth, monthCumulative);
     monthCumulative = 0;
-  currMonth = month();
+    currMonth = month();
+  }
 
+  //sync day cumulative with firebase
   dayCumulative = eepromRead(DAY_CUMULATIVE_ADDRESS);
   currDay = eepromRead(CURR_DAY_ADDRESS);
-  Firebase.set("irSensor/history/current/day" + (String)currDay, dayCumulative);
-  if(currDay != day()) 
-    monthCumulative = 0;
-  currMonth = day();
+  if(currDay == day())
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/day", dayCumulative);
+  else {
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/past/days/"+currDay, dayCumulative);
+    dayCumulative = 0;
+    currDay = day();
+  }
+
+  //sync hour cumulative with firebase
+  hourCumulative = eepromRead(HOUR_CUMULATIVE_ADDRESS);
+  currHour = eepromRead(CURR_HOUR_ADDRESS);
+  if(currHour == hour())
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/hour", hourCumulative);
+  else {
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/past/hours/"+currHour, hourCumulative);
+    hourCumulative = 0;
+    currHour = hour();
+  }
+
 }
 
 
@@ -187,9 +212,10 @@ void calcCumulative(double elapsedTime) {
     prevTime = now();
     double realTimeAverage = (double) realTimeSum / realTimeCount;
     cumulative += (realTimeAverage/1000)*(elapsedTime/3600);
-    Firebase.set("irSensor/cumulative", cumulative);
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/overall", cumulative);
     eepromStore(CUMULATIVE_ADDRESS, cumulative);
-
+    
+    //this peice of code lacks the hour cumulative
     if(currYear != year()) {
 
         currYear = year();
@@ -207,15 +233,19 @@ void calcCumulative(double elapsedTime) {
         currDay = day();
         dayCumulative = 0;
     }
+
     yearCumulative += (realTimeAverage/1000)*(elapsedTime/3600);
-    Firebase.set("irSensor/history/current/year" + (String)currYear, yearCumulative);
     eepromStore(YEAR_CUMULATIVE_ADDRESS, yearCumulative);
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/year", yearCumulative);
+    
     monthCumulative += (realTimeAverage/1000)*(elapsedTime/3600);
-    Firebase.set("irSensor/history/current/month" + (String)currMonth, monthCumulative);
     eepromStore(MONTH_CUMULATIVE_ADDRESS, monthCumulative);
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/month", monthCumulative);
+    
     dayCumulative += (realTimeAverage/1000)*(elapsedTime/3600);
-    Firebase.set("irSensor/history/current/day" + (String)currDay, dayCumulative);
     eepromStore(DAY_CUMULATIVE_ADDRESS, dayCumulative);
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/day", dayCumulative);
+    
     realTimeSum = 0;
     realTimeCount = 0;
     
