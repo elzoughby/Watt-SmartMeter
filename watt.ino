@@ -211,40 +211,51 @@ void calcCumulative(double elapsedTime) {
 
     prevTime = now();
     double realTimeAverage = (double) realTimeSum / realTimeCount;
-    cumulative += (realTimeAverage/1000)*(elapsedTime/3600);
-    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/overall", cumulative);
-    eepromStore(CUMULATIVE_ADDRESS, cumulative);
+    double tempCumulative = (realTimeAverage/1000)*(elapsedTime/3600);
     
-    //this peice of code lacks the hour cumulative
-    if(currYear != year()) {
+    if(currHour != hour()) {
+      currHour = hour();
+      hourCumulative = 0;
+      eepromStore(CURR_HOUR_ADDRESS, currHour);
 
-        currYear = year();
-        yearCumulative = 0;
-        currMonth = month();
-        monthCumulative = 0;
+      if(currDay != day()) {
         currDay = day();
         dayCumulative = 0;
-    } else if(currMonth != month()) {
-        currMonth = month();
-        monthCumulative = 0;
-        currDay = day();
-        dayCumulative = 0;
-    } else if(currDay != day()) {
-        currDay = day();
-        dayCumulative = 0;
+        eepromStore(CURR_DAY_ADDRESS, currDay);
+
+        if(currMonth != month()) {
+          currMonth = month();
+          monthCumulative = 0;
+          eepromStore(CURR_MONTH_ADDRESS, currMonth);
+          
+          if(currYear != year()) {
+            currYear = year();
+            yearCumulative = 0;
+            eepromStore(CURR_YEAR_ADDRESS, currYear);
+          }
+        }
+      }
     }
 
-    yearCumulative += (realTimeAverage/1000)*(elapsedTime/3600);
-    eepromStore(YEAR_CUMULATIVE_ADDRESS, yearCumulative);
-    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/year", yearCumulative);
+    hourCumulative += tempCumulative;
+    eepromStore(HOUR_CUMULATIVE_ADDRESS, hourCumulative);
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/hour", hourCumulative);
     
-    monthCumulative += (realTimeAverage/1000)*(elapsedTime/3600);
-    eepromStore(MONTH_CUMULATIVE_ADDRESS, monthCumulative);
-    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/month", monthCumulative);
-    
-    dayCumulative += (realTimeAverage/1000)*(elapsedTime/3600);
+    dayCumulative += tempCumulative;
     eepromStore(DAY_CUMULATIVE_ADDRESS, dayCumulative);
     Firebase.set(String("Homes/")+METER_ID+"/consumption/current/day", dayCumulative);
+    
+    monthCumulative += tempCumulative;
+    eepromStore(MONTH_CUMULATIVE_ADDRESS, monthCumulative);
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/month", monthCumulative);
+
+    yearCumulative += tempCumulative;
+    eepromStore(YEAR_CUMULATIVE_ADDRESS, yearCumulative);
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/year", yearCumulative);
+
+    cumulative += tempCumulative;
+    Firebase.set(String("Homes/")+METER_ID+"/consumption/current/overall", cumulative);
+    eepromStore(CUMULATIVE_ADDRESS, cumulative);
     
     realTimeSum = 0;
     realTimeCount = 0;
