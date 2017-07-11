@@ -2,6 +2,7 @@
 #include <FirebaseArduino.h>    //https://github.com/firebase/firebase-arduino
 #include "watt_eeprom.h"
 #include "watt_time.h"
+#include "watt_wificonfig.h"
 
 #define FIREBASE_HOST "watt-project-eg.firebaseio.com"
 #define FIREBASE_AUTH "BIiq1X5t2MYbzj9mQxat1BuABRNIX8VT7YGIz7Mb"

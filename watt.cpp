@@ -73,7 +73,7 @@ float readRealTime() {
     difference = sensorMax-sensorAverage;
 
     voltage = (double)difference * 3.3 / 1023;
-    current = voltage / 0.1;
+    current = voltage / 0.066;
     current = current * 0.707;
     power = current * 220;
 
