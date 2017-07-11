@@ -25,6 +25,7 @@ void gpioConfig() {
 
   Serial.begin(9600);
   pinMode(A0, INPUT);
+  pinMode(WIFI_LED, OUTPUT);
   pinMode(CONTROL_BUTTON, INPUT);
   attachInterrupt(digitalPinToInterrupt(CONTROL_BUTTON), interrupt, FALLING);
 
