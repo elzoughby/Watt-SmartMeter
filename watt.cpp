@@ -1,16 +1,16 @@
 #include "watt.h"
 
 
-float prevPowerAverage = 0;
+volatile float prevPowerAverage = 0;
 volatile double cumulative = 0;
-double hourCumulative = 0;
-double dayCumulative = 0;
-double monthCumulative = 0;
-double yearCumulative = 0;
-unsigned char currHour = 0;
-unsigned char currDay = 0;
-unsigned char currMonth = 0;
-unsigned short currYear = 0;
+volatile double hourCumulative = 0;
+volatile double dayCumulative = 0;
+volatile double monthCumulative = 0;
+volatile double yearCumulative = 0;
+volatile unsigned char currHour = 0;
+volatile unsigned char currDay = 0;
+volatile unsigned char currMonth = 0;
+volatile unsigned short currYear = 0;
 volatile double realTimeSum = 0;
 volatile double realTimeCount = 0;
 volatile time_t prevTime = 0;
